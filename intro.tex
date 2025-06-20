@@ -1,0 +1,63 @@
+\section{Coulombic Interaction and Ewald Summation}
+We have a system of with $n_p$ charges, the Coulomb interaction energy is given by:
+\begin{flalign}
+    (4\pi\epsilon_o)U &= \frac{1}{2}\sum_{\vec{M}= -\infty}^{\infty}{' \sum_{j=1}^{n_p}\sum_{k=1}^{n_p} \frac{q_jq_k}{|\vec{r_j}-\vec{r_k}+\vec{M}.\vec{L}|}} \\
+     &= \frac{1}{2} \int_{-\infty}^{\infty} d\vec{r_2}\, \rho(\vec{r_2}) \int_{-\infty}^{\infty} \frac{d\vec{r_1}\, \rho(\vec{r_1})}{|\vec{r_1}-\vec{r_2}|} \\
+    &= \frac{1}{2}\int_{-\infty}^{\infty} d\vec{r_2}\, \rho(\vec r_2)\phi(\vec r_2)
+\end{flalign}
+here $\rho(\vec{r})$ is the charge density at any point $\vec{r}$ and $\phi(\vec{r})$ is the potential field at any point $\vec{r}$. The term $\rho(\vec{r})$ is given by:
+\begin{equation}
+    \rho(\vec{r})=\sum_{\vec{M}=-\infty}^{\infty}\sum_{j=1}^{n_p}q_j\delta(\vec{r}-\vec{r_j}+\vec{M}.\vec{L})
+\end{equation}
+Here $\vec{M} \in \mathbb{Z}^2$ or $\mathbb{Z}^3 $ for a 2D or 3D periodic system respectively.
+\subsection*{3D systems}
+The Ewald summation for 3D periodicity can be written as,
+\begin{flalign}
+    \nonumber (4\pi\epsilon_o)U & =\frac{2\pi}{L_xL_yL_z}\sum_{\vec{K}=-\infty}^{\infty}{}^{\prime}\frac{1}{|\vec{G}|^2}\,{exp}\left(\frac{-1}{4\alpha^2}|\vec{G}|^2\right)|\,S(\vec{G})\,|^2\, \\
+    & \quad\quad\quad -\frac{\alpha}{\sqrt{\pi}}\sum_{i=1}^{n_p} q_i^2  +\frac{1}{2}\sum_{i=1}^{n_p}\prime\sum_{j=1}^{n_p}q_i q_j\frac{erfc(\alpha|\vec{r_j}-\vec{r_i}|)}{|\vec{r_j}-\vec{r_i}|}
+\end{flalign}
+The computational cost of the traditional Ewald summation method, which scales as $O(N^2)$ and can be reduced to $O(N^\frac{3}{2})$ with optimized approaches, remains prohibitive for extensive molecular simulations. This limitation has motivated the development of more efficient techniques such as the Particle Mesh Ewald (PME) and Smooth Particle Mesh Ewald (SPME) methods.
+ 
+\subsection*{Smooth Particle Mesh Ewald for 3D periodicity}
+The Particle Mesh Ewald (PME) method was first introduced by Hockney and Eastwood, utilizing Laplace interpolation techniques to assign charges onto a regular grid. However, the discontinuous nature of these interpolations posed challenges in accurately computing forces. To address this, the Smooth Particle Mesh Ewald (SPME) method was later developed by Essmann et al., which employs exponential B-splines to smoothly interpolate the charge distribution on the grid, enabling more accurate and efficient force calculations.
+
+In the SPME method, the structure factor in the reciprocal space sum is expressed as
+\begin{equation}
+\exp(2\pi i \mathbf{m} \cdot \mathbf{r}) =
+\exp\left(2\pi i \frac{m_1 u_1}{K_1} \right)
+\exp\left(2\pi i \frac{m_2 u_2}{K_2} \right)
+\exp\left(2\pi i \frac{m_3 u_3}{K_3} \right),
+\end{equation}
+where $\mathbf{u} = \mathbf{K}.\mathbf{r^*}$ are the scaled fractional coordinates.
+To efficiently compute this on a mesh, each term is approximated using exponential B-splines:
+\begin{equation}
+\exp\left(2\pi i \frac{m_i}{K_i} u_i\right) \approx 
+b_i(m_i) \sum_{k=-\infty}^{\infty} M_n(u_i - k) 
+\cdot \exp\left(2\pi i \frac{m_i}{K_i} k\right),
+\end{equation}
+with normalization:
+\begin{equation}
+b_i(m_i) = \exp\left(2\pi i (n - 1) \frac{m_i}{K_i}\right) 
+\left[
+\sum_{k=0}^{n-2} M_n(k+1) \exp\left(2\pi i \frac{m_i k}{K_i}\right)
+\right]^{-1}.
+\end{equation}
+The B-spline functions are defined recursively. The second-order B-spline is:
+$M_2(u) = 
+1 - |u - 1| \text{ for } 0 \le u \le 2$, and 0 otherwise, and for higher orders \( n > 2 \), the recursion is defined by Cox–de Boor formula as:
+\begin{equation}
+M_n(u) = \frac{u}{n-1} M_{n-1}(u) + \frac{n - u}{n - 1} M_{n-1}(u - 1).
+\end{equation}
+
+\subsection*{2D systems}
+The Ewald summation for 2D periodicity can be written as,
+\begin{flalign}
+    \nonumber (4\pi\epsilon_o)U &= \frac{1}{L_xL_y} \sum_{{K}=-\infty}^{\infty} \prime 
+    \int_{-\infty}^{\infty} du \frac{\,{exp}\left(-\frac{\sigma^2+\psi^2 +u^2}{4\alpha^2}\right)}
+    {\sigma^2+\psi^2 +u^2} \, |S(\vec{K},u)|^2  \\
+    \nonumber &\quad\quad\quad + \frac{2\sqrt{\pi}}{L_xL_y} \sum_{i=1}^{n_p}\sum_{j=1}^{n_p}q_i q_j
+    \left[\frac{1-\,{exp}(-z_{ij}^2\alpha^2)}{\alpha}+\sqrt{\pi}z_{ij}\,{erf}(\alpha z_{ij})\right] \\
+    &\quad\quad\quad -\frac{\alpha}{\sqrt{\pi}}\sum_{i=1}^{n_p} q_i^2 + \frac{1}{2}\sum_{i=1}^{n_p}\prime\sum_{j=1}^{n_p} q_i q_j\frac{erfc(\alpha|\Vec{r_j}-\Vec{r_i}|)}{|\Vec{r_j}-\Vec{r_i}|}
+\end{flalign}
+This was given by kawata et al.
+\subsection*{Smooth Particle Mesh Ewald for 2D periodicity}

@@ -1,0 +1,48 @@
+\clearpage
+\section{Performance Analysis and Optimisation}
+\subsection*{Performance Analysis using VTune}
+Done on real space and reciprocal space sums(after improvement method) with SPME, because now we can see that we have the real space that is the bottleneck for the program as it takes more time to run.
+\subsubsection*{before}
+\subsubsection*{after}
+\subsection*{Memory Optimisation via Array Flattening}
+In the implementation, data involving multiple dimensions needed to be stored in several parts of the program, such as atom positions and charge spreading array for the SPME. While multidimensional arrays are a natural choice for such data, they come with drawbacks. 
+
+Dynamically allocated multidimensional arrays often lead to scattered memory layouts and multiple pointer dereferences. This results in poor cache performance and added complexity in memory management. 
+To address this, a one-dimensional array was used to represent the multidimensional structure. For an array with rank $d$ and dimensions $n_1\times \ldots \times n_d$, an element at ($i_1\times \ldots \times i_d$) maps to:
+\begin{flalign*}
+    i_d + n_d \cdot \left( i_{d-1} + n_{d-1} \cdot \left( \ldots + n_2 \cdot i_1 \right)\right)
+\end{flalign*}
+This approach reduced overhead, improved memory locality, and allowed faster access through direct indexing.
+
+% the indexing line is taken from the fftw tutorial website.
+% https://www.fftw.org/fftw2_doc/fftw_2.html
+
+\subsection*{Polynomial Interpolation of Error Function}
+During performance profiling using Intel VTune Profiler, it was observed that a significant portion of the program’s execution time was consumed by calls to the \verb|std::erfc| function. This function, part of the C++ Standard Library (\verb|<cmath>| header), computes the complementary error function. The high frequency and computational cost of these calls were identified as a key performance bottleneck within the application.
+\[
+erf(x) = 1 - (a_1 t + a_2 t^2 + a_3 t^3 + a_4 t^4 + a_5 t^5) e^{-x^2} + \epsilon(x),
+\]
+\[
+t = \frac{1}{1 + px}, \quad |\epsilon(x)| \leq 1.5 \times 10^{-7},
+\]
+\[
+p = 0.3275911, \\
+a_1 = 0.254829592, \\
+a_2 = -0.284496736,
+\]
+\[
+a_3 = 1.421413741, \\
+a_4 = -1.453152027, \\
+a_5 = 1.061405429.
+\]
+\subsection*{Parallelisation}
+% \subsubsection*{Real Space}
+
+% \subsubsection*{Reciprocal Space}
+\subsubsection*{OpenMP}
+\subsubsection*{Reduction Clauses}
+
+\subsubsection*{False Sharing during Charge Spreading for SPME}
+During the computation of the charge spreading array $Q$, the contribution to each grid point is determined by the interpolation weights associated with each particle. In a parallel implementation, multiple threads might try to update the same grid point at the same time if the interpolation regions of different particles overlap.  This shared memory access can lead to cache coherence issues, commonly referred to as \textit{false sharing}, where multiple threads operating on adjacent memory locations cause unnecessary cache invalidations, degrading performance. 
+
+To address this issue, the \verb|atomic update| clause provided by OpenMP was employed. It prevents the possibility of multiple, simultaneous read/write actions to the same memory location preventing the race conditions. 

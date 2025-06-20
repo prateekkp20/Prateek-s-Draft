@@ -1,0 +1,12 @@
+\clearpage
+\section{Results}
+We took a system of 10,000 Na and Cl ions in a 25 \AA box for our benchmarking. Based on our analysis for various gamma values, we calculated the reciprocal space energies for a given system, and checked for the convergence of the sum. 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[scale=0.3]{images/logerror_vs_kz_forreport.jpg}
+    \caption{Convergence of relative errors in $U_{LR}$ with $k_z$ for various values of $\gamma$.}
+    \label{fig:result1}
+\end{figure}
+
+\subsubsection*{SPME with our 2D Ewald}
+Now to speed up the calculations, we calculated the structure factor using bspline interpolation and FFT. The best accuracy and optimal time of our method+SPME is determined from the combination of gamma, order and grid. smaller the gamma, higher the grid points required for the interpolation. 

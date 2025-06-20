@@ -1,0 +1,39 @@
+\clearpage
+\section{Appendix}
+\subsection{Real to fourier space, Poisson Summation}
+In the X and Y direction, we have the function
+\begin{flalign*}
+    F(x) &= \sum_{{m_x}=-\infty}^{\infty}exp\left[-(x+m_xL_x)^2 t^2\right]
+\end{flalign*}
+In the Z direction, we have the function
+\begin{flalign*}
+    F(z) &= \sum_{{m_z}=-\infty}^{\infty}exp\left[-(z+m_zL_z)^2 t^2\right]\phi(z+m_zL_z) 
+    % \\ &= \sum_{{m_z}=-\infty}^{\infty}exp\left[-(z+m_zL_z)^2 t^2\right]\left[\frac{1}{1+ exp(-\gamma(L_z(0.5+m_z)+z))} + \frac{1}{1+ exp(-\gamma(L_z(0.5-m_z)-z))} -1\right]
+\end{flalign*}
+Note that, $F(z)$ is a periodic function because $F(z) = F(z+L_z)$. So using the poisson summation formula, we can write any periodic function as a fourier series as follows:
+\begin{flalign*}
+    F(z) &= \sum_{k=-\infty}^{\infty} C_k \hspace{1mm}exp(i\frac{2\pi k z}{L_z}) 
+\end{flalign*}
+where $C_k$ are constants. To obtain the values of $C_k$, we multiply each side by $exp(-i\frac{2\pi n z}{L_z})$ and integrate in z from 0 to $L_z$.
+\begin{flalign*}
+    \int_{0}^{L_z}C_{k_z}(t)dz &= \sum_{{m_z}=-\infty}^{\infty} \int_{0}^{L_z} dz\hspace{1mm}exp(-i\frac{2\pi n z}{L_z}) \hspace{1mm} exp\left[-(z+m_zL_z)^2 t^2\right] \, \phi(z+m_zL_z)
+    % \\ &=\sum_{{m_z}=-\infty}^{\infty} \int_{0}^{L_z} dz\hspace{1mm}exp(-i\frac{2\pi n z}{L_z}) \hspace{1mm} exp\left[-(z+m_zL_z)^2 t^2\right]\times \\&\hspace{40mm}\left[\frac{1}{1+ exp(-\gamma(L_z(0.5+m_z)+z))} + \frac{1}{1+ exp(-\gamma(L_z(0.5-m_z)-z))} -1\right]
+\end{flalign*}
+Now substituting $s = z + mL_z$, and realizing that $exp(-i2\pi m n)=1$, we obtain
+\begin{flalign}
+   \nonumber C_{k_z}(t) &= \frac{1}{L_z}\sum_{{m_z}=-\infty}^{\infty} \int_{mL_z}^{(m+1)L_z} ds\, exp(-s^2t^2)\,exp(-i\frac{2\pi n s}{L_z}) \, \phi(s)
+    \\ &=\frac{1}{L_z}\int_{-\infty}^{\infty}ds\, exp(-s^2t^2)\,exp(-i\frac{2\pi n s}{L_z}) \, \phi(s) \label{eq:ck}
+\end{flalign}
+Due to the complex form of $\phi(s)$ we cannot obtain a closed-form expression for the above integral and will have to solve using numerical methods.
+% \colorbox{yellow}{no closed form integral expression} \\
+To get the coefficients for the X and Y direction function, put $\phi(s) = 1$, and we can obtain the following closed-form expression for $C_{k_x}$ and $C_{k_y}$:
+\begin{flalign*}
+   C_{k_x}(t) &= \frac{1}{L_x}\sqrt{\frac{\pi}{t}} exp\left(\frac{-\pi^2k_x^2}{L_x^2t}\right)
+\end{flalign*}
+So our final expression to transform from real to reciprocal space would be:
+\begin{flalign*}
+    \sum_{{m_x}=-\infty}^{\infty}exp\left[-(x+m_xL_x)^2 t^2\right] &= \frac{1}{L_x}\sqrt{\frac{\pi}{t}}\sum_{k_x=-\infty}^{\infty}exp\left(\frac{-\pi^2k^2}{L_x^2t}+i\frac{2\pi k_x x}{L_x}\right) 
+    % \\ \sum_{{m_z}=-\infty}^{\infty}exp\left[-(z+m_zL_z)^2 t^2\right]\phi(z+m_zL_z) &=  \frac{1}{L_z}\sum_{k=-\infty}^{\infty}  \left[ \int_{-\infty}^{\infty}ds\, exp(-s^2t^2)\,exp(-i\frac{2\pi n s}{L_z}) \, \phi(s)\right]  exp\left(i\frac{2\pi kx}{L_x}\right)  
+    \\ \sum_{{m_z}=-\infty}^{\infty}exp\left[-(z+m_zL_z)^2 t^2\right]\phi(z+m_zL_z) &=  \sum_{k_z=-\infty}^{\infty}  C_{k_z}(t)  \, exp\left(i\frac{2\pi k_z z}{L_z}\right)  
+\end{flalign*}
+The value of $C_{k_z}(t)$ comes from equation \ref{eq:ck}
